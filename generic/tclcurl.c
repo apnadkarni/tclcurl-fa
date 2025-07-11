@@ -50,6 +50,11 @@ Tclcurl_Init (Tcl_Interp *interp) {
     }
 #endif
 
+#ifdef _WIN32
+    /* Pick Windows Schannel over openssl to use Windows certificate store */
+    (void) curl_global_sslset(CURLSSLBACKEND_SCHANNEL, NULL, NULL);
+#endif
+
     Tcl_CreateObjCommand (interp,"::curl::init",curlInitObjCmd,
             (ClientData)NULL,(Tcl_CmdDeleteProc *)NULL);
     Tcl_CreateObjCommand (interp,"::curl::version",curlVersion,
