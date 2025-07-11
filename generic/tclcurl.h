@@ -28,6 +28,22 @@
 #define _MPRINTF_REPLACE
 #include <curl/mprintf.h>
 
+#if TCL_MAJOR_VERSION <= 8
+# ifdef Tcl_Size
+#   undef Tcl_Size
+# endif
+  typedef int Tcl_Size;
+# define Tcl_GetSizeIntFromObj Tcl_GetIntFromObj
+# define Tcl_NewSizeIntObj Tcl_NewIntObj
+# define TCL_SIZE_MAX      INT_MAX
+# define TCL_SIZE_MODIFIER ""
+#endif /* TCL_MAJOR_VERSION */
+
+
+#ifdef Tcl_Size
+#undef Tcl_Size
+#endif
+
 #ifdef  __cplusplus
 extern "C" {
 #endif

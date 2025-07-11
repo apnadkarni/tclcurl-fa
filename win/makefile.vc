@@ -61,6 +61,6 @@ install:    default-install-docs-html default-install-libraries
 
 pkgindex:
         @type << >"$(OUT_DIR)\pkgIndex.tcl"
-    package ifneeded $(PROJECT) $(DOTVERSION) "[list load [file join $$dir $(PRJLIBNAME)] TclCurl]; [list source [file join $$dir tclcurl.tcl]]"
+    package ifneeded $(PROJECT) $(DOTVERSION) "[list load [file join $$dir $(PRJLIBNAME)] Tclcurl]; [list source [file join $$dir tclcurl.tcl]]"
 <<
 

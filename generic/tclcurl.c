@@ -41,11 +41,11 @@ EXTERN int
 Tclcurl_Init (Tcl_Interp *interp) {
 
 #ifdef USE_TCL_STUBS
-    if (Tcl_InitStubs(interp,"8.5",0)==NULL) {
+    if (Tcl_InitStubs(interp,TCL_VERSION,0)==NULL) {
         return TCL_ERROR;
     }
 #else
-    if (Tcl_PkgRequire(interp,"Tcl","8.5",0)==NULL) {
+    if (Tcl_PkgRequire(interp,"Tcl",TCL_VERSION,0)==NULL) {
         return TCL_ERROR;
     }
 #endif
@@ -465,7 +465,7 @@ curlSetOpts(Tcl_Interp *interp, struct curlObjData *curlData,
 
     int            exitCode;
     CURL           *curlHandle=curlData->curl;
-    int            i,j,k;
+    Tcl_Size       i, j, k;
 
     Tcl_Obj        *resultObjPtr;
     Tcl_Obj        *tmpObjPtr;
@@ -474,7 +474,7 @@ curlSetOpts(Tcl_Interp *interp, struct curlObjData *curlData,
     const char     *startPtr;
     const char     *endPtr;
 
-    int             charLength;
+    ptrdiff_t       charLength;
     long            longNumber=0;
     int             intNumber;
     char           *tmpStr;
@@ -485,7 +485,7 @@ curlSetOpts(Tcl_Interp *interp, struct curlObjData *curlData,
     int                       curlTableIndex,formaddError,formArrayIndex;
     struct formArrayStruct   *newFormArray;
     struct curl_forms        *formArray;
-    int                       curlformBufferSize;
+    Tcl_Size                  curlformBufferSize;
     size_t                    contentslen;
 
     unsigned long int         protocolMask;
@@ -2437,7 +2437,7 @@ int
 SetoptBlob(Tcl_Interp *interp,CURL *curlHandle,
         CURLoption opt,int tableIndex,Tcl_Obj *tclObj) {
     struct curl_blob   optionBlob;
-    int                len;
+    Tcl_Size           len;
 
     optionBlob.data = Tcl_GetByteArrayFromObj(tclObj,&len);
     if (optionBlob.data) {
@@ -2512,7 +2512,7 @@ SetoptSHandle(Tcl_Interp *interp,CURL *curlHandle,
 int
 SetoptsList(Tcl_Interp *interp,struct curl_slist **slistPtr,
         Tcl_Obj *const objv) {
-    int         i,headerNumber;
+    Tcl_Size      i,headerNumber;
     Tcl_Obj     **headers;
 
     if (slistPtr!=NULL) {
@@ -2593,7 +2593,8 @@ curlHeaderReader(void *ptr,size_t size,size_t nmemb,FILE *curlDataPtr) {
     char                *headerContent;
     char                *httpStatus;
 
-    int                  match,charLength;
+    int                  match;
+    ptrdiff_t            charLength;
 
     regExp=Tcl_RegExpCompile(curlData->interp,"(.*?)(?::\\s*)(.*?)(\\r*)(\\n)");
     match=Tcl_RegExpExec(curlData->interp,regExp,header,header);
@@ -2662,7 +2663,7 @@ curlHeaderReader(void *ptr,size_t size,size_t nmemb,FILE *curlDataPtr) {
 size_t
 curlBodyReader(void *ptr,size_t size,size_t nmemb,FILE *curlDataPtr) {
 
-    register int realsize = size * nmemb;
+    register size_t realsize = size * nmemb;
     struct MemoryStruct *mem=&(((struct curlObjData *)curlDataPtr)->bodyVar);
 
     mem->memory = (char *)Tcl_Realloc(mem->memory,mem->size + realsize);
@@ -2750,15 +2751,15 @@ curlProgressCallback(void *clientData,double dltotal,double dlnow,
  */
 size_t
 curlWriteProcInvoke(void *ptr,size_t size,size_t nmemb,FILE *curlDataPtr) {
-    register int realsize = size * nmemb;
+    size_t realsize = size * nmemb;
     struct curlObjData  *curlData = (struct curlObjData *)curlDataPtr;
-    register int        curl_retcode;
+    size_t              curl_retcode;
     int                 code;
-    int                 cmd_list_size;
+    Tcl_Size            cmd_list_size;
     const char        **argvPtr;
-    int                 argcPtr;
+    Tcl_Size            argcPtr;
     Tcl_Obj**           objList;
-    int                 i;
+    Tcl_Size            i;
 
     if (curlData->cancelTransVarName) {
         if (curlData->cancelTrans) {
@@ -2784,7 +2785,7 @@ curlWriteProcInvoke(void *ptr,size_t size,size_t nmemb,FILE *curlDataPtr) {
 
     code = Tcl_EvalObjv(curlData->interp,cmd_list_size+1,objList,TCL_EVAL_GLOBAL);
     if (code != TCL_OK) {
-        curl_retcode = -1;
+        curl_retcode = (size_t) -1;
     }
     for (i = 0; i <= cmd_list_size; i++) { Tcl_DecrRefCount(objList[i]); }
     Tcl_Free((char *)objList);
@@ -2814,12 +2815,12 @@ curlWriteProcInvoke(void *ptr,size_t size,size_t nmemb,FILE *curlDataPtr) {
  */
 size_t
 curlReadProcInvoke(void *ptr,size_t size,size_t nmemb,FILE *curlDataPtr) {
-    register int realsize = size * nmemb;
+    size_t realsize = size * nmemb;
     struct curlObjData  *curlData=(struct curlObjData *)curlDataPtr;
     Tcl_Obj             *tclProcPtr;
     Tcl_Obj             *readDataPtr;
     unsigned char       *readBytes;
-    int                  sizeRead;
+    Tcl_Size             sizeRead;
 
     if (curlData->cancelTransVarName) {
         if (curlData->cancelTrans) {
